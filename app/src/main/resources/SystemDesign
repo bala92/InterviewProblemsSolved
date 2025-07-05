@@ -1,0 +1,114 @@
+
+System Design approaches and summaries:
+
+
+1. Ad click aggregator:
+
+kinesis event streams -> flink (aggregates the events)
+
+aggregation window 1 min
+
+flush intervals - 10 seconds
+
+shard by AD ID
+
+If there is a HOT shard then the service send the events should know it then 
+further shard the AD.ID 0:N 
+
+Enable 7 rentention even if flink goes down the data is there.
+
+Checkpointing in flink is an option if the aggregation window is greater than 5 mins.
+Checkpoint to s3.
+
+Periodic reconcilliation 
+
+kinesis event streams -> s3 -> spark (map reduce) -> cron job -> 
+reconcilliation worker -> OLAP (Online Anlytical Processing)
+
+
+2. Uber
+
+Location DB
+
+Option 1:
+
+Quad Tree 
+recursively split the 4 quads
+
+PostGIS supports quad trees.
+
+Great for un-even density.
+
+Options 2:
+
+Redis store  (Geo-hashing) prefix tells you the larger region.
+
+Great for high frequency writes.
+
+No double booking a driver:
+Redis store distributed lock, expiry of driver id after 5 seconds.  
+
+3. Ticketmaster
+
+No double booking a seat:
+Redis store distributed lock, expiry of ticket id after 15 seconds.
+
+Low latency search: Elatic search (search optimized DB) Inverted index.
+Map the terms to the documents.
+
+CDC to move the data from Postgres to elastic search.
+
+CDN to cache the API request.
+
+Seat Map in real time: Update the client to refresh the seat Map with long polling.
+Other option is SSE (Server Sent Events) Unidirectional from server to client persistent connection.
+
+Introduce the choke point. Virtual waiting queue. enabled for popular events.
+
+Queue can be a redis store with sorted set (priority queue) send the notification to user through SSE when the user is out of the queue.
+
+4. Dropbox
+
+Upload large files:
+Presigned urls from s3
+
+S3 notification to DB via SNS notification on PUT object.
+
+Chucks the files for large files:
+Fingerprint is hash of the bytes of the file.
+
+Sync between local and remote 
+
+Windows:
+FileSystemWatcher
+
+MacOS:
+FSEvents
+
+EventBus for change of events for versioning like rollback or rollforward.
+
+5. Web Crawler
+
+6. Top K Youtube Videos
+
+7. Search
+
+8. News Feed
+
+9. Youtube
+
+10.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
